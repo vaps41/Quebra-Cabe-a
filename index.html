@@ -9,6 +9,10 @@
         .puzzle-piece {
             cursor: grab;
             transition: transform 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         .puzzle-piece:hover {
             transform: scale(1.05);
@@ -19,90 +23,241 @@
             transform: rotate(5deg) scale(1.1);
             z-index: 20;
         }
+        .puzzle-piece.selected {
+            border: 3px solid #fbbf24 !important;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+            transform: scale(1.1);
+            z-index: 15;
+        }
         .drop-zone {
             border: 2px dashed #cbd5e0;
             transition: all 0.3s;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         .drop-zone.drag-over {
             border-color: #4299e1;
             background-color: #ebf8ff;
         }
+        .drop-zone.highlight {
+            border-color: #fbbf24;
+            background-color: #fef3c7;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
         .correct-position {
             border: 2px solid #48bb78 !important;
+        }
+        
+        /* Welcome screen animations */
+        .floating-piece {
+            animation: floatPiece 4s ease-in-out infinite;
+        }
+        
+        @keyframes floatPiece {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -20px) rotate(5deg); }
+            50% { transform: translate(-20px, 10px) rotate(-3deg); }
+            75% { transform: translate(40px, 5px) rotate(8deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        
+        .puzzle-complete {
+            animation: puzzleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes puzzleGlow {
+            0% { filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5)); }
+            100% { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8)); }
+        }
+        
+        .title-bounce {
+            animation: titleBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes titleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-white text-center mb-8">🧩 Quebra-Cabeça Personalizado</h1>
-        
-        <!-- Upload Section -->
-        <div class="bg-white rounded-xl shadow-2xl p-6 mb-8 max-w-2xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Escolha sua foto</h2>
-            <div class="mb-4">
-                <input type="file" id="imageUpload" accept="image/*" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
-            </div>
-            
-            <!-- Difficulty Buttons -->
-            <div class="mb-4">
-                <p class="text-gray-700 mb-2 font-medium">Escolha a dificuldade:</p>
-                <div class="flex gap-3 justify-center">
-                    <button onclick="setPieces(15)" id="btn15" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
-                        15 peças (Fácil)
-                    </button>
-                    <button onclick="setPieces(20)" id="btn20" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
-                        20 peças (Médio)
-                    </button>
-                    <button onclick="setPieces(30)" id="btn30" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
-                        30 peças (Difícil)
-                    </button>
-                    <button onclick="setPieces(50)" id="btn50" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
-                        50 peças (Expert)
-                    </button>
-                </div>
-            </div>
-            
-            <button onclick="startPuzzle()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors">
-                🎮 Iniciar Quebra-Cabeça
-            </button>
+    
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="min-h-screen flex flex-col items-center justify-center px-4">
+        <div class="text-center mb-12 fade-in">
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-4 title-bounce">
+                🧩 Vamos Brincar de
+            </h1>
+            <h2 class="text-4xl md:text-6xl font-bold text-yellow-300 title-bounce" style="animation-delay: 0.5s;">
+                Quebra-Cabeça!
+            </h2>
         </div>
+        
+        <!-- Animated Puzzle Demo -->
+        <div class="relative mb-12 fade-in" style="animation-delay: 1s;">
+            <!-- Main puzzle with missing piece -->
+            <div class="puzzle-complete">
+                <svg width="300" height="200" viewBox="0 0 300 200" class="drop-shadow-lg">
+                    <!-- Dog body -->
+                    <ellipse cx="150" cy="120" rx="80" ry="40" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    
+                    <!-- Dog head -->
+                    <circle cx="100" cy="80" r="35" fill="#D2691E" stroke="#654321" stroke-width="2"/>
+                    
+                    <!-- Dog ears -->
+                    <ellipse cx="80" cy="60" rx="15" ry="25" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    <ellipse cx="120" cy="60" rx="15" ry="25" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    
+                    <!-- Dog legs -->
+                    <rect x="110" y="150" width="12" height="30" fill="#8B4513" stroke="#654321" stroke-width="2" rx="6"/>
+                    <rect x="130" y="150" width="12" height="30" fill="#8B4513" stroke="#654321" stroke-width="2" rx="6"/>
+                    <rect x="170" y="150" width="12" height="30" fill="#8B4513" stroke="#654321" stroke-width="2" rx="6"/>
+                    <rect x="190" y="150" width="12" height="30" fill="#8B4513" stroke="#654321" stroke-width="2" rx="6"/>
+                    
+                    <!-- Dog tail -->
+                    <ellipse cx="240" cy="110" rx="20" ry="8" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    
+                    <!-- Missing piece area (eyes and nose) -->
+                    <rect x="85" y="70" width="30" height="20" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="5,5" opacity="0.7"/>
+                </svg>
+            </div>
+            
+            <!-- Floating puzzle piece -->
+            <div class="absolute top-0 left-0 floating-piece">
+                <svg width="40" height="30" viewBox="0 0 40 30" class="drop-shadow-lg">
+                    <!-- Puzzle piece shape with dog eyes and nose -->
+                    <path d="M5,5 L35,5 L35,25 L5,25 Z" fill="#D2691E" stroke="#654321" stroke-width="2"/>
+                    
+                    <!-- Dog eyes -->
+                    <circle cx="12" r="3" cy="12" fill="#000"/>
+                    <circle cx="28" cy="12" r="3" fill="#000"/>
+                    <circle cx="13" cy="11" r="1" fill="#fff"/>
+                    <circle cx="29" cy="11" r="1" fill="#fff"/>
+                    
+                    <!-- Dog nose -->
+                    <ellipse cx="20" cy="18" rx="3" ry="2" fill="#000"/>
+                </svg>
+            </div>
+        </div>
+        
+        <button onclick="startGame()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-4 px-8 rounded-full text-xl shadow-2xl transform hover:scale-105 transition-all duration-300 fade-in" style="animation-delay: 2s;">
+            🎮 Começar a Brincadeira!
+        </button>
+        
+        <p class="text-white text-lg mt-6 text-center max-w-md fade-in" style="animation-delay: 2.5s;">
+            Faça upload da sua foto favorita e transforme em um quebra-cabeça divertido!
+        </p>
+    </div>
 
-        <!-- Game Area -->
-        <div id="gameArea" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Reference Image -->
-                <div class="bg-white rounded-xl shadow-2xl p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">🖼️ Imagem de Referência</h3>
-                    <div class="flex justify-center">
-                        <img id="referenceImage" class="max-w-full h-auto rounded-lg shadow-lg" style="max-height: 300px;">
+    <!-- Main Game (hidden initially) -->
+    <div id="mainGame" class="hidden">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-4xl font-bold text-white">🧩 Quebra-Cabeça Personalizado</h1>
+                <button onclick="goBack()" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors">
+                    ← Voltar
+                </button>
+            </div>
+            
+            <!-- Upload Section -->
+            <div class="bg-white rounded-xl shadow-2xl p-6 mb-8 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Escolha sua foto</h2>
+                <div class="mb-4">
+                    <input type="file" id="imageUpload" accept="image/*" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
+                </div>
+                
+                <!-- Difficulty Buttons -->
+                <div class="mb-4">
+                    <p class="text-gray-700 mb-2 font-medium">Escolha a dificuldade:</p>
+                    <div class="flex gap-3 justify-center flex-wrap">
+                        <button onclick="setPieces(15)" id="btn15" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            15 peças (Fácil)
+                        </button>
+                        <button onclick="setPieces(20)" id="btn20" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            20 peças (Médio)
+                        </button>
+                        <button onclick="setPieces(30)" id="btn30" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            30 peças (Difícil)
+                        </button>
+                        <button onclick="setPieces(50)" id="btn50" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            50 peças (Expert)
+                        </button>
                     </div>
-                    <div class="mt-4 text-center">
-                        <p class="text-gray-600">Peças: <span id="totalPieces" class="font-bold">15</span></p>
-                        <p class="text-gray-600">Corretas: <span id="correctPieces" class="font-bold text-green-600">0</span></p>
+                </div>
+                
+                <button onclick="startPuzzle()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors">
+                    🎮 Iniciar Quebra-Cabeça
+                </button>
+            </div>
+
+            <!-- Game Area -->
+            <div id="gameArea" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Reference Image -->
+                    <div class="bg-white rounded-xl shadow-2xl p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">🖼️ Imagem de Referência</h3>
+                        <div class="flex justify-center">
+                            <img id="referenceImage" class="max-w-full h-auto rounded-lg shadow-lg" style="max-height: 300px;">
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-gray-600">Peças: <span id="totalPieces" class="font-bold">15</span></p>
+                            <p class="text-gray-600">Corretas: <span id="correctPieces" class="font-bold text-green-600">0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Puzzle Board -->
+                    <div class="bg-white rounded-xl shadow-2xl p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">🎯 Monte o Quebra-Cabeça</h3>
+                        <div id="puzzleBoard" class="grid gap-1 mx-auto" style="max-width: 400px; max-height: 400px;"></div>
                     </div>
                 </div>
 
-                <!-- Puzzle Board -->
-                <div class="bg-white rounded-xl shadow-2xl p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">🎯 Monte o Quebra-Cabeça</h3>
-                    <div id="puzzleBoard" class="grid gap-1 mx-auto" style="max-width: 400px; max-height: 400px;"></div>
+                <!-- Pieces Container -->
+                <div class="bg-white rounded-xl shadow-2xl p-6 mt-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">🧩 Peças Disponíveis</h3>
+                    <div class="mb-4 p-3 bg-blue-50 rounded-lg md:hidden">
+                        <p class="text-sm text-blue-800">
+                            📱 <strong>No celular:</strong> Toque na peça para selecioná-la (ficará dourada), depois toque no local correto para encaixar!
+                        </p>
+                    </div>
+                    <div class="mb-4 p-3 bg-gray-50 rounded-lg hidden md:block">
+                        <p class="text-sm text-gray-700">
+                            🖱️ <strong>No computador:</strong> Arraste as peças para os locais corretos no quebra-cabeça!
+                        </p>
+                    </div>
+                    <div id="piecesContainer" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 justify-items-center"></div>
                 </div>
-            </div>
 
-            <!-- Pieces Container -->
-            <div class="bg-white rounded-xl shadow-2xl p-6 mt-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">🧩 Peças Disponíveis</h3>
-                <div id="piecesContainer" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 justify-items-center"></div>
-            </div>
-
-            <!-- Success Message -->
-            <div id="successMessage" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-xl p-8 text-center shadow-2xl">
-                    <h2 class="text-3xl font-bold text-green-600 mb-4">🎉 Parabéns!</h2>
-                    <p class="text-xl text-gray-700 mb-6">Você completou o quebra-cabeça!</p>
-                    <button onclick="resetGame()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
-                        Jogar Novamente
-                    </button>
+                <!-- Success Message -->
+                <div id="successMessage" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-xl p-8 text-center shadow-2xl">
+                        <h2 class="text-3xl font-bold text-green-600 mb-4">🎉 Parabéns!</h2>
+                        <p class="text-xl text-gray-700 mb-6">Você completou o quebra-cabeça!</p>
+                        <div class="flex gap-4 justify-center">
+                            <button onclick="resetGame()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
+                                Jogar Novamente
+                            </button>
+                            <button onclick="goToWelcome()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold">
+                                Tela Inicial
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,14 +268,37 @@
         let pieceCount = 15;
         let puzzleData = [];
         let correctCount = 0;
+        let selectedPiece = null;
+        let isMobile = window.innerWidth <= 768;
+
+        // Update mobile detection on resize
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth <= 768;
+        });
+
+        function startGame() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('mainGame').classList.remove('hidden');
+        }
+
+        function goBack() {
+            document.getElementById('gameArea').classList.add('hidden');
+        }
+
+        function goToWelcome() {
+            document.getElementById('mainGame').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            resetGame();
+        }
 
         function setPieces(count) {
             pieceCount = count;
             // Update button styles
             document.querySelectorAll('[id^="btn"]').forEach(btn => {
-                btn.className = btn.className.replace('bg-blue-600', 'bg-gray-400');
+                btn.className = btn.className.replace('bg-blue-600', 'bg-gray-400').replace('bg-blue-700', 'bg-gray-500');
             });
-            document.getElementById(`btn${count}`).className = document.getElementById(`btn${count}`).className.replace('bg-gray-400', 'bg-blue-600');
+            const selectedBtn = document.getElementById(`btn${count}`);
+            selectedBtn.className = selectedBtn.className.replace('bg-gray-400', 'bg-blue-600').replace('bg-gray-500', 'bg-blue-700');
             document.getElementById('totalPieces').textContent = count;
         }
 
@@ -191,6 +369,7 @@
                         dropZone.addEventListener('dragover', handleDragOver);
                         dropZone.addEventListener('drop', handleDrop);
                         dropZone.addEventListener('dragleave', handleDragLeave);
+                        dropZone.addEventListener('click', handleDropZoneClick);
                         
                         puzzleBoard.appendChild(dropZone);
                         
@@ -218,6 +397,7 @@
                         
                         piece.addEventListener('dragstart', handleDragStart);
                         piece.addEventListener('dragend', handleDragEnd);
+                        piece.addEventListener('click', handlePieceClick);
                         
                         piecesContainer.appendChild(piece);
                         
@@ -243,56 +423,141 @@
             }
         }
 
+        function handlePieceClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (isMobile) {
+                // Remove selection from all pieces
+                document.querySelectorAll('.puzzle-piece').forEach(piece => {
+                    piece.classList.remove('selected');
+                });
+                
+                // Remove highlight from all drop zones
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.remove('highlight');
+                });
+                
+                // Select this piece
+                e.target.classList.add('selected');
+                selectedPiece = e.target;
+                
+                // Highlight the correct drop zone
+                const correctPosition = e.target.dataset.correctPosition;
+                const correctZone = document.querySelector(`[data-position="${correctPosition}"]`);
+                if (correctZone && !correctZone.hasChildNodes()) {
+                    correctZone.classList.add('highlight');
+                }
+            }
+        }
+
+        function handleDropZoneClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (isMobile && selectedPiece) {
+                const draggedPosition = selectedPiece.dataset.correctPosition;
+                const dropPosition = e.currentTarget.dataset.position;
+                
+                if (draggedPosition === dropPosition) {
+                    // Correct position
+                    e.currentTarget.innerHTML = '';
+                    e.currentTarget.appendChild(selectedPiece.cloneNode(true));
+                    e.currentTarget.classList.add('correct-position');
+                    e.currentTarget.classList.remove('highlight');
+                    
+                    // Remove from pieces container
+                    selectedPiece.remove();
+                    selectedPiece = null;
+                    
+                    correctCount++;
+                    document.getElementById('correctPieces').textContent = correctCount;
+                    
+                    // Check if puzzle is complete
+                    if (correctCount === pieceCount) {
+                        setTimeout(() => {
+                            document.getElementById('successMessage').classList.remove('hidden');
+                        }, 500);
+                    }
+                } else {
+                    // Wrong position
+                    e.currentTarget.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => {
+                        e.currentTarget.style.backgroundColor = '';
+                    }, 1000);
+                    
+                    // Deselect piece
+                    selectedPiece.classList.remove('selected');
+                    selectedPiece = null;
+                    
+                    // Remove highlights
+                    document.querySelectorAll('.drop-zone').forEach(zone => {
+                        zone.classList.remove('highlight');
+                    });
+                }
+            }
+        }
+
         function handleDragStart(e) {
-            e.dataTransfer.setData('text/plain', e.target.dataset.correctPosition);
-            e.target.classList.add('dragging');
+            if (!isMobile) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.correctPosition);
+                e.target.classList.add('dragging');
+            }
         }
 
         function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
+            if (!isMobile) {
+                e.target.classList.remove('dragging');
+            }
         }
 
         function handleDragOver(e) {
-            e.preventDefault();
-            e.currentTarget.classList.add('drag-over');
+            if (!isMobile) {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-over');
+            }
         }
 
         function handleDragLeave(e) {
-            e.currentTarget.classList.remove('drag-over');
+            if (!isMobile) {
+                e.currentTarget.classList.remove('drag-over');
+            }
         }
 
         function handleDrop(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-            
-            const draggedPosition = e.dataTransfer.getData('text/plain');
-            const dropPosition = e.currentTarget.dataset.position;
-            
-            if (draggedPosition === dropPosition) {
-                // Correct position
-                const piece = document.querySelector(`[data-correct-position="${draggedPosition}"]`);
-                e.currentTarget.innerHTML = '';
-                e.currentTarget.appendChild(piece.cloneNode(true));
-                e.currentTarget.classList.add('correct-position');
+            if (!isMobile) {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
                 
-                // Remove from pieces container
-                piece.remove();
+                const draggedPosition = e.dataTransfer.getData('text/plain');
+                const dropPosition = e.currentTarget.dataset.position;
                 
-                correctCount++;
-                document.getElementById('correctPieces').textContent = correctCount;
-                
-                // Check if puzzle is complete
-                if (correctCount === pieceCount) {
+                if (draggedPosition === dropPosition) {
+                    // Correct position
+                    const piece = document.querySelector(`[data-correct-position="${draggedPosition}"]`);
+                    e.currentTarget.innerHTML = '';
+                    e.currentTarget.appendChild(piece.cloneNode(true));
+                    e.currentTarget.classList.add('correct-position');
+                    
+                    // Remove from pieces container
+                    piece.remove();
+                    
+                    correctCount++;
+                    document.getElementById('correctPieces').textContent = correctCount;
+                    
+                    // Check if puzzle is complete
+                    if (correctCount === pieceCount) {
+                        setTimeout(() => {
+                            document.getElementById('successMessage').classList.remove('hidden');
+                        }, 500);
+                    }
+                } else {
+                    // Wrong position - piece returns to container
+                    e.currentTarget.style.backgroundColor = '#fee2e2';
                     setTimeout(() => {
-                        document.getElementById('successMessage').classList.remove('hidden');
-                    }, 500);
+                        e.currentTarget.style.backgroundColor = '';
+                    }, 1000);
                 }
-            } else {
-                // Wrong position - piece returns to container
-                e.currentTarget.style.backgroundColor = '#fee2e2';
-                setTimeout(() => {
-                    e.currentTarget.style.backgroundColor = '';
-                }, 1000);
             }
         }
 
@@ -302,11 +567,21 @@
             document.getElementById('imageUpload').value = '';
             currentImage = null;
             correctCount = 0;
+            selectedPiece = null;
+            
+            // Clear all selections and highlights
+            document.querySelectorAll('.puzzle-piece').forEach(piece => {
+                piece.classList.remove('selected');
+            });
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('highlight');
+            });
+            
             setPieces(15);
         }
 
         // Initialize with 15 pieces selected
         setPieces(15);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'962f57cfe79cdc0c',t:'MTc1MzE0OTYxMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'962f679d30d8dc0c',t:'MTc1MzE1MDI1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
